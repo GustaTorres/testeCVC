@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients("br.com.cvc")
+@EnableFeignClients
 public class BackendFindHotelsApplication {
 
 	public static void main(final String[] args) {
