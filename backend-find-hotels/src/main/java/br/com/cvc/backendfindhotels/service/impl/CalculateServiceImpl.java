@@ -39,11 +39,22 @@ public class CalculateServiceImpl implements CalculatorService {
 	private static final BigDecimal COMISSION_VALUE = BigDecimal.valueOf(0.7);
 
 	@Override
-	public CalculateTravelDto calculateTravel(final Long cityCode, final Instant checkIn, final Instant checkout,
+	public CalculateTravelDto calculateTravelByCity(final Long cityCode, final Instant checkIn, final Instant checkout,
 			final BigInteger amoutAdult, final BigInteger amoutChildren) {
+		final List<HotelClientDto> hotels = hotelBrokerClient.getHotelsByCityCode(cityCode);
+		return calculateTravel(checkIn, checkout, hotels);
 
-		final List<HotelClientDto> hotelsByCityCode = hotelBrokerClient.getHotelsByCityCode(cityCode);
+	}
 
+	@Override
+	public CalculateTravelDto calculateTravelByHotel(final Long hotelId, final Instant checkIn, final Instant checkout,
+			final BigInteger amoutAdult, final BigInteger amoutChildren) {
+		final List<HotelClientDto> hotels = hotelBrokerClient.getHotelById(hotelId);
+		return calculateTravel(checkIn, checkout, hotels);
+	}
+
+	private CalculateTravelDto calculateTravel(final Instant checkIn, final Instant checkout,
+			final List<HotelClientDto> hotelsByCityCode) {
 		final CalculateTravelDto calculateTravelDto = new CalculateTravelDto();
 		final Optional<HotelClientDto> findAny = hotelsByCityCode.stream().findAny();
 		findAny.ifPresent(hotelFound -> {
@@ -58,7 +69,6 @@ public class CalculateServiceImpl implements CalculatorService {
 
 		final List<RoomDto> rooms = getProcessDone(completables);
 		calculateTravelDto.getRooms().addAll(rooms);
-
 		return calculateTravelDto;
 	}
 
@@ -82,8 +92,8 @@ public class CalculateServiceImpl implements CalculatorService {
 		final ExecutorService executor = Executors.newFixedThreadPool(THREADS);
 
 		final List<CompletableFuture<List<RoomDto>>> completables = new ArrayList<>();
-
 		for (final List<HotelClientDto> hotels : listHotelPart) {
+
 
 			final CompletableFuture<List<RoomDto>> completableFuture = new CompletableFuture<>();
 

@@ -11,10 +11,10 @@ public class RoomDto implements Serializable {
 	private static final long serialVersionUID = 3868778135057863515L;
 
 	private Long roomID;
-	private HotelDto hotel;
 	private String categoryName;
 	private BigDecimal totalPrice;
 	private PriceDetailDto priceDetail;
+	private HotelDto hotel;
 
 	public Long getRoomID() {
 		return roomID;

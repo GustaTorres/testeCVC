@@ -14,7 +14,7 @@ public interface HotelBrokerClient {
 	@GetMapping("avail/{cityCode}")
 	public List<HotelClientDto> getHotelsByCityCode(@PathVariable("cityCode") Long cityCode);
 
-	@GetMapping("{idHotel}")
-	public List<HotelClientDto> getHotelById(@PathVariable("idHotel") Long idHotel);
+	@GetMapping("{hotelId}")
+	public List<HotelClientDto> getHotelById(@PathVariable("hotelId") Long hotelId);
 
 }

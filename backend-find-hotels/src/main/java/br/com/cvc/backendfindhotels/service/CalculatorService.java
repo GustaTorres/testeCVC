@@ -7,7 +7,10 @@ import br.com.cvc.backendfindhotels.model.CalculateTravelDto;
 
 public interface CalculatorService {
 
-	CalculateTravelDto calculateTravel(Long cityCode, Instant checkIn, Instant checkout, BigInteger amoutAdult,
+	CalculateTravelDto calculateTravelByCity(Long cityCode, Instant checkIn, Instant checkout, BigInteger amoutAdult,
+			BigInteger amoutChildren);
+
+	CalculateTravelDto calculateTravelByHotel(Long hotelId, Instant checkIn, Instant checkout, BigInteger amoutAdult,
 			BigInteger amoutChildren);
 
 }
