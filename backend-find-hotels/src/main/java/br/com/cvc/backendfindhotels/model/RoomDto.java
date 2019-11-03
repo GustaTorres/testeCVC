@@ -11,9 +11,10 @@ public class RoomDto implements Serializable {
 	private static final long serialVersionUID = 3868778135057863515L;
 
 	private Long roomID;
+	private HotelDto hotel;
 	private String categoryName;
 	private BigDecimal totalPrice;
-	private PriceDetailDto priceDetailDto;
+	private PriceDetailDto priceDetail;
 
 	public Long getRoomID() {
 		return roomID;
@@ -21,6 +22,14 @@ public class RoomDto implements Serializable {
 
 	public void setRoomID(final Long roomID) {
 		this.roomID = roomID;
+	}
+
+	public HotelDto getHotel() {
+		return hotel;
+	}
+
+	public void setHotel(final HotelDto hotel) {
+		this.hotel = hotel;
 	}
 
 	public String getCategoryName() {
@@ -39,18 +48,19 @@ public class RoomDto implements Serializable {
 		this.totalPrice = totalPrice;
 	}
 
-	public PriceDetailDto getPriceDetailDto() {
-		return priceDetailDto;
+	public PriceDetailDto getPriceDetail() {
+		return priceDetail;
 	}
 
-	public void setPriceDetailDto(final PriceDetailDto priceDetailDto) {
-		this.priceDetailDto = priceDetailDto;
+	public void setPriceDetail(final PriceDetailDto priceDetail) {
+		this.priceDetail = priceDetail;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((hotel == null) ? 0 : hotel.hashCode());
 		result = prime * result + ((roomID == null) ? 0 : roomID.hashCode());
 		return result;
 	}
@@ -64,6 +74,11 @@ public class RoomDto implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		final RoomDto other = (RoomDto) obj;
+		if (hotel == null) {
+			if (other.hotel != null)
+				return false;
+		} else if (!hotel.equals(other.hotel))
+			return false;
 		if (roomID == null) {
 			if (other.roomID != null)
 				return false;
@@ -74,8 +89,7 @@ public class RoomDto implements Serializable {
 
 	@Override
 	public String toString() {
-		return "RoomDto [roomID=" + roomID + ", categoryName=" + categoryName + ", totalPrice=" + totalPrice
-				+ ", priceDetailDto=" + priceDetailDto + "]";
+		return "RoomDto [roomID=" + roomID + ", hotel=" + hotel + ", categoryName=" + categoryName + ", totalPrice="
+				+ totalPrice + ", priceDetail=" + priceDetail + "]";
 	}
-
 }
