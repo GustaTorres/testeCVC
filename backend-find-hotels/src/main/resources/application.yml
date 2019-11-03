@@ -9,4 +9,9 @@ feign:
         readTimeout: 50000
         loggerLevel: basic
 
+process-parallel:
+  number-threads: 2
+
+comission: 0.7 
+
 

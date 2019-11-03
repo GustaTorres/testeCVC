@@ -6,7 +6,6 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -15,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
@@ -35,8 +35,11 @@ public class CalculateServiceImpl implements CalculatorService {
 	@Autowired
 	private HotelBrokerClient hotelBrokerClient;
 
-	private static final Integer THREADS = 2;
-	private static final BigDecimal COMISSION_VALUE = BigDecimal.valueOf(0.7);
+	@Value("${process-parallel.number-threads}")
+	private Integer threads;
+
+	@Value("${comission}")
+	private BigDecimal comission;
 
 	@Override
 	public CalculateTravelDto calculateTravelByCity(final Long cityCode, final Instant checkIn, final Instant checkout,
@@ -69,11 +72,12 @@ public class CalculateServiceImpl implements CalculatorService {
 
 		final List<RoomDto> rooms = getProcessDone(completables);
 		calculateTravelDto.getRooms().addAll(rooms);
+
 		return calculateTravelDto;
 	}
 
 	private List<RoomDto> getProcessDone(final List<CompletableFuture<List<RoomDto>>> completables) {
-		final List<RoomDto> synchronizedList = Collections.synchronizedList(new ArrayList<RoomDto>());
+		final List<RoomDto> synchronizedList = new ArrayList<>();
 
 		for (final CompletableFuture<List<RoomDto>> completableFuture : completables) {
 			List<RoomDto> list;
@@ -89,11 +93,10 @@ public class CalculateServiceImpl implements CalculatorService {
 
 	private List<CompletableFuture<List<RoomDto>>> processCalcParallel(final List<List<HotelClientDto>> listHotelPart,
 			final long days) {
-		final ExecutorService executor = Executors.newFixedThreadPool(THREADS);
+		final ExecutorService executor = Executors.newFixedThreadPool(threads);
 
 		final List<CompletableFuture<List<RoomDto>>> completables = new ArrayList<>();
 		for (final List<HotelClientDto> hotels : listHotelPart) {
-
 
 			final CompletableFuture<List<RoomDto>> completableFuture = new CompletableFuture<>();
 
@@ -110,7 +113,7 @@ public class CalculateServiceImpl implements CalculatorService {
 
 	private List<List<HotelClientDto>> partitionList(final List<HotelClientDto> hotelsByCityCode) {
 		final int size = hotelsByCityCode.size();
-		final int partition = new BigDecimal(size).divide(new BigDecimal(THREADS), RoundingMode.HALF_UP).intValue();
+		final int partition = new BigDecimal(size).divide(new BigDecimal(threads), RoundingMode.HALF_UP).intValue();
 		return Lists.partition(hotelsByCityCode, partition);
 	}
 
@@ -155,6 +158,6 @@ public class CalculateServiceImpl implements CalculatorService {
 	}
 
 	private BigDecimal calcCommission(final BigDecimal price) {
-		return price.divide(COMISSION_VALUE, RoundingMode.HALF_UP);
+		return price.divide(comission, RoundingMode.HALF_UP);
 	}
 }
