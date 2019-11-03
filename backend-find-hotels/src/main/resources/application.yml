@@ -1,17 +1,24 @@
 server:
   port: 8000
-  
+
+hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds: 20000
+
 feign:
+  hystrix:
+    enabled: true
   client:
+    hotelBroker:
+      url: 'https://cvcbackendhotel.herokuapp.com/hotels/'
     config:
       default:
-        connectTimeout: 50000
-        readTimeout: 50000
         loggerLevel: basic
+     
 
 process-parallel:
   number-threads: 2
 
-comission: 0.7 
+comission: 0.7
+
+
 
 

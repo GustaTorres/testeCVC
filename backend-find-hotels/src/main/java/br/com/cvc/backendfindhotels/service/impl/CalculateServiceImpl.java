@@ -23,6 +23,7 @@ import br.com.cvc.backendfindhotels.client.HotelBrokerClient;
 import br.com.cvc.backendfindhotels.client.model.HotelClientDto;
 import br.com.cvc.backendfindhotels.client.model.PriceClientDto;
 import br.com.cvc.backendfindhotels.client.model.RoomClientDto;
+import br.com.cvc.backendfindhotels.exception.UnexpectedException;
 import br.com.cvc.backendfindhotels.model.CalculateTravelDto;
 import br.com.cvc.backendfindhotels.model.HotelDto;
 import br.com.cvc.backendfindhotels.model.PriceDetailDto;
@@ -59,6 +60,11 @@ public class CalculateServiceImpl implements CalculatorService {
 	private CalculateTravelDto calculateTravel(final Instant checkIn, final Instant checkout,
 			final List<HotelClientDto> hotelsByCityCode) {
 		final CalculateTravelDto calculateTravelDto = new CalculateTravelDto();
+
+		if (hotelsByCityCode == null || hotelsByCityCode.isEmpty()) {
+			return calculateTravelDto;
+		}
+
 		final Optional<HotelClientDto> findAny = hotelsByCityCode.stream().findAny();
 		findAny.ifPresent(hotelFound -> {
 			calculateTravelDto.setCityName(hotelFound.getCityName());
@@ -76,19 +82,10 @@ public class CalculateServiceImpl implements CalculatorService {
 		return calculateTravelDto;
 	}
 
-	private List<RoomDto> getProcessDone(final List<CompletableFuture<List<RoomDto>>> completables) {
-		final List<RoomDto> synchronizedList = new ArrayList<>();
-
-		for (final CompletableFuture<List<RoomDto>> completableFuture : completables) {
-			List<RoomDto> list;
-			try {
-				list = completableFuture.get();
-				synchronizedList.addAll(list);
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-			}
-		}
-		return synchronizedList;
+	private List<List<HotelClientDto>> partitionList(final List<HotelClientDto> hotelsByCityCode) {
+		final int size = hotelsByCityCode.size();
+		final int partition = new BigDecimal(size).divide(new BigDecimal(threads), RoundingMode.HALF_UP).intValue();
+		return Lists.partition(hotelsByCityCode, partition);
 	}
 
 	private List<CompletableFuture<List<RoomDto>>> processCalcParallel(final List<List<HotelClientDto>> listHotelPart,
@@ -111,10 +108,21 @@ public class CalculateServiceImpl implements CalculatorService {
 		return completables;
 	}
 
-	private List<List<HotelClientDto>> partitionList(final List<HotelClientDto> hotelsByCityCode) {
-		final int size = hotelsByCityCode.size();
-		final int partition = new BigDecimal(size).divide(new BigDecimal(threads), RoundingMode.HALF_UP).intValue();
-		return Lists.partition(hotelsByCityCode, partition);
+	private List<RoomDto> getProcessDone(final List<CompletableFuture<List<RoomDto>>> completables) {
+		final List<RoomDto> synchronizedList = new ArrayList<>();
+
+		for (final CompletableFuture<List<RoomDto>> completableFuture : completables) {
+			List<RoomDto> list;
+			try {
+				list = completableFuture.get();
+				synchronizedList.addAll(list);
+			} catch (InterruptedException | ExecutionException e) {
+				completableFuture.completeExceptionally(e);
+				Thread.currentThread().interrupt();
+				throw new UnexpectedException(e);
+			}
+		}
+		return synchronizedList;
 	}
 
 	private List<RoomDto> processCalc(final List<HotelClientDto> hotelsByCityCode, final long days) {
